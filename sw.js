@@ -1,11 +1,13 @@
 // Vergi Hesap Service Worker
-const CACHE_NAME = 'vergihesap-v4';
+const CACHE_NAME = 'vergihesap-v5';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './vendor/html2canvas.min.js',
+  './vendor/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', event => {

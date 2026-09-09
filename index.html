@@ -392,6 +392,8 @@ table.pr-t tr.hl td{background:#fef2f2;color:#b91c1c;font-weight:800;}
   </div>
 </div>
 
+<script src="vendor/html2canvas.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
 <script>
 /* ===== Yardımcılar ===== */
 function gV(id){var el=document.getElementById(id);if(!el||el.value==='')return 0;
@@ -826,7 +828,32 @@ function pdfYazdir(){
         '<div class="amt"><div class="eur">'+r('res-genel-eur')+'</div><div class="tl">'+r('res-genel-maliyet')+'</div></div></div>'+
       '<div class="pr-foot">Bu rapor Vergi Hesap uygulamasıyla '+tarih+' tarihinde üretilmiştir. Yalnızca ön bilgi amaçlıdır; resmî beyan / gümrük belgesi değildir.</div>'+
     '</div>';
-  setTimeout(function(){window.print();},60);
+
+  var pa=g('print-area');
+  var jsOK=window.jspdf&&window.jspdf.jsPDF, hcOK=typeof window.html2canvas==='function';
+  // Kütüphaneler yoksa (çok eski tarayıcı / yüklenememiş) tarayıcı yazdırmasına düş
+  if(!(jsOK&&hcOK)){ setTimeout(function(){window.print();},60); return; }
+
+  var btn=document.querySelector('.btn-pdf'); if(btn){btn.disabled=true;btn.dataset._t=btn.textContent;btn.textContent='PDF hazırlanıyor...';}
+  var eski=pa.style.cssText;
+  // Ekran dışında, sabit A4 içerik genişliğinde görünür kıl (html2canvas için)
+  pa.style.cssText='display:block;position:fixed;left:-10000px;top:0;width:760px;background:#fff;padding:6px;box-sizing:border-box;';
+  window.html2canvas(pa,{scale:2,backgroundColor:'#ffffff',logging:false}).then(function(canvas){
+    var img=canvas.toDataURL('image/jpeg',0.95);
+    var jsPDF=window.jspdf.jsPDF, pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pw=210,ph=297,m=10,availW=pw-2*m,availH=ph-2*m;
+    var iw=availW, ih=canvas.height*availW/canvas.width;
+    if(ih>availH){ ih=availH; iw=canvas.width*availH/canvas.height; } // tek sayfaya sığdır
+    pdf.addImage(img,'JPEG',(pw-iw)/2,m,iw,ih);
+    var ad='VergiHesap-'+new Date().toISOString().slice(0,10)+'.pdf';
+    pdf.save(ad);
+  }).catch(function(e){
+    console.warn('PDF üretilemedi, yazdırmaya düşülüyor:',e);
+    setTimeout(function(){window.print();},60);
+  }).finally(function(){
+    pa.style.cssText=eski;
+    if(btn){btn.disabled=false;btn.textContent=btn.dataset._t||'PDF GÖNDER';}
+  });
 }
 
 /* ===== Başlat ===== */
