@@ -181,13 +181,59 @@ table.pr-t tr.hl2 td{background:#fff7ed;color:#c2410c;font-weight:800;}
   background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;}
 :root[data-theme="dark"] .btn-pdf{background:#1e293b;}
+
+/* ===== Giriş / Üyelik ekranı (auth gate) ===== */
+#authgate{position:fixed;inset:0;z-index:1000;background:var(--bg);
+  display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+  padding:calc(24px + env(safe-area-inset-top)) 16px 24px;}
+.ag-card{width:100%;max-width:400px;margin:auto;background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;box-shadow:var(--shadow);padding:22px 20px;}
+.ag-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--primary),#7c3aed);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px;margin:0 auto 12px;}
+.ag-title{text-align:center;font-size:19px;font-weight:800;margin:0 0 2px;}
+.ag-sub{text-align:center;font-size:12px;color:var(--text-muted);margin:0 0 18px;}
+.ag-tabs{display:flex;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.ag-tabs button{flex:1;height:42px;border:0;background:transparent;color:var(--text-secondary);font-weight:700;font-size:14px;font-family:inherit;cursor:pointer;}
+.ag-tabs button.active{background:var(--primary);color:#fff;}
+.ag-field{margin-bottom:12px;}
+.ag-field label{display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;}
+.ag-field input{width:100%;height:48px;padding:0 14px;border:1px solid var(--border);border-radius:10px;
+  background:var(--input-bg);color:var(--text);font-size:16px;font-family:inherit;}
+.ag-field input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.ag-btn{width:100%;height:50px;border:0;border-radius:10px;background:var(--primary);color:#fff;
+  font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;margin-top:4px;}
+.ag-btn:disabled{opacity:.6;cursor:default;}
+.ag-msg{font-size:13px;border-radius:10px;padding:11px 12px;margin-bottom:14px;line-height:1.4;}
+.ag-msg.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);}
+.ag-msg.warn{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:var(--warning);}
+.ag-msg.info{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);color:var(--text-secondary);}
+.ag-center{text-align:center;}
+.ag-spin{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;
+  animation:agspin .8s linear infinite;margin:14px auto;}
+@keyframes agspin{to{transform:rotate(360deg);}}
+.ag-link{background:none;border:0;color:var(--primary);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;padding:8px;}
+.ag-note{font-size:11px;color:var(--text-muted);text-align:center;margin-top:14px;line-height:1.5;}
 </style>
 </head>
 <body>
+
+<!-- GİRİŞ / ÜYELİK EKRANI -->
+<div id="authgate">
+  <div class="ag-card">
+    <div class="ag-logo">₺</div>
+    <div class="ag-title">Vergi Hesap</div>
+    <div class="ag-sub">İthalat Vergisi & MTV</div>
+    <div id="authgate-body">
+      <div class="ag-center"><div class="ag-spin"></div><div style="color:var(--text-muted);font-size:13px;">Yükleniyor…</div></div>
+    </div>
+  </div>
+</div>
+
 <header>
   <h1><span class="logo">₺</span> Vergi Hesap</h1>
   <div style="display:flex;gap:8px;">
     <button class="icon-btn" onclick="pdfYazdir()" title="PDF / Yazdır">🖨️</button>
+    <button class="icon-btn" onclick="cikisYap()" title="Çıkış">🚪</button>
     <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Tema">🌓</button>
   </div>
 </header>
@@ -427,6 +473,9 @@ table.pr-t tr.hl2 td{background:#fff7ed;color:#c2410c;font-weight:800;}
 
 <script src="vendor/html2canvas.min.js"></script>
 <script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
 <script>
 /* ===== Yardımcılar ===== */
 function gV(id){var el=document.getElementById(id);if(!el||el.value==='')return 0;
@@ -956,6 +1005,185 @@ document.addEventListener('DOMContentLoaded',function(){
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 }
+</script>
+
+<!-- ===== GİRİŞ / ÜYELİK (Firebase Auth + Firestore) ===== -->
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAZwnJQk6UuWmqWdslZXgh6mFr42WveguA",
+    authDomain: "vergihesap-35a8b.firebaseapp.com",
+    projectId: "vergihesap-35a8b",
+    storageBucket: "vergihesap-35a8b.firebasestorage.app",
+    messagingSenderId: "552477088226",
+    appId: "1:552477088226:web:36fa28cb840c2547e841bb"
+  };
+  if(typeof firebase==='undefined'){ // SDK yüklenemedi (çok eski tarayıcı) — grace'e bırak
+    graceOnlyFallback(); return;
+  }
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+  try{ db.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
+
+  var DEVICE_KEY='vh_device', GATE_KEY='vh_gate', GRACE_DAYS=7;
+  var gateEl=document.getElementById('authgate'), bodyEl=document.getElementById('authgate-body');
+  var authTab='login';
+
+  function deviceId(){
+    var d=null; try{d=localStorage.getItem(DEVICE_KEY);}catch(e){}
+    if(!d){ d='dev-'+Math.random().toString(36).slice(2)+'-'+Date.now().toString(36); try{localStorage.setItem(DEVICE_KEY,d);}catch(e){} }
+    return d;
+  }
+  function saveGate(uid){ try{localStorage.setItem(GATE_KEY,JSON.stringify({uid:uid,dev:deviceId(),t:Date.now()}));}catch(e){} }
+  function readGate(){ try{return JSON.parse(localStorage.getItem(GATE_KEY)||'null');}catch(e){return null;} }
+  function clearGate(){ try{localStorage.removeItem(GATE_KEY);}catch(e){} }
+  function showApp(){ if(gateEl) gateEl.style.display='none'; }
+  function showGate(){ if(gateEl) gateEl.style.display='flex'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function view(html){ if(bodyEl) bodyEl.innerHTML=html; }
+  function loading(t){ return '<div class="ag-center"><div class="ag-spin"></div><div style="color:var(--text-muted);font-size:13px;">'+esc(t||'Yükleniyor…')+'</div></div>'; }
+
+  var trHata={
+    'auth/invalid-email':'Geçersiz e-posta adresi.',
+    'auth/user-not-found':'Bu e-posta ile kayıt yok.',
+    'auth/wrong-password':'Şifre hatalı.',
+    'auth/invalid-credential':'E-posta veya şifre hatalı.',
+    'auth/email-already-in-use':'Bu e-posta zaten kayıtlı.',
+    'auth/weak-password':'Şifre en az 6 karakter olmalı.',
+    'auth/too-many-requests':'Çok fazla deneme. Biraz sonra tekrar deneyin.',
+    'auth/network-request-failed':'İnternet bağlantısı yok.'
+  };
+  function hataMetni(e){ return trHata[e&&e.code] || (e&&e.message) || 'Bir hata oluştu.'; }
+
+  /* ---- Ekranlar ---- */
+  function renderLogin(msg,msgTip){
+    authTab='login';
+    view(
+      '<div class="ag-tabs"><button class="active" onclick="__ag.tab(\'login\')">Giriş Yap</button><button onclick="__ag.tab(\'signup\')">Üye Ol</button></div>'+
+      (msg?'<div class="ag-msg '+(msgTip||'err')+'">'+esc(msg)+'</div>':'')+
+      '<div class="ag-field"><label>E-posta</label><input id="ag-email" type="email" inputmode="email" autocomplete="username" placeholder="ornek@mail.com"></div>'+
+      '<div class="ag-field"><label>Şifre</label><input id="ag-pass" type="password" autocomplete="current-password" placeholder="••••••"></div>'+
+      '<button class="ag-btn" id="ag-go" onclick="__ag.login()">Giriş Yap</button>'+
+      '<div class="ag-note">Hesabın yoksa <b>Üye Ol</b> ile kayıt olabilir, yönetici onayından sonra giriş yapabilirsin.</div>'
+    );
+  }
+  function renderSignup(msg,msgTip){
+    authTab='signup';
+    view(
+      '<div class="ag-tabs"><button onclick="__ag.tab(\'login\')">Giriş Yap</button><button class="active" onclick="__ag.tab(\'signup\')">Üye Ol</button></div>'+
+      (msg?'<div class="ag-msg '+(msgTip||'err')+'">'+esc(msg)+'</div>':'')+
+      '<div class="ag-field"><label>Ad Soyad</label><input id="ag-ad" type="text" autocomplete="name" placeholder="Adınız"></div>'+
+      '<div class="ag-field"><label>E-posta</label><input id="ag-email" type="email" inputmode="email" autocomplete="username" placeholder="ornek@mail.com"></div>'+
+      '<div class="ag-field"><label>Şifre (en az 6 karakter)</label><input id="ag-pass" type="password" autocomplete="new-password" placeholder="••••••"></div>'+
+      '<button class="ag-btn" id="ag-go" onclick="__ag.signup()">Üye Ol</button>'+
+      '<div class="ag-note">Üye olduktan sonra hesabın <b>yönetici onayı</b> bekler. Onaylanınca giriş yapabilirsin.</div>'
+    );
+  }
+  function renderPending(user){
+    view(
+      '<div class="ag-msg warn"><b>Hesabın onay bekliyor.</b><br>Üyeliğin yönetici tarafından onaylandığında giriş yapabilirsin.</div>'+
+      '<div class="ag-note">Kayıtlı e-posta:<br><b>'+esc(user.email)+'</b></div>'+
+      '<button class="ag-btn" style="margin-top:16px;background:var(--input-bg);color:var(--text);border:1px solid var(--border);" onclick="__ag.recheck()">Tekrar Dene</button>'+
+      '<div class="ag-center"><button class="ag-link" onclick="__ag.logout()">Çıkış yap</button></div>'
+    );
+  }
+  function renderDevice(){
+    view(
+      '<div class="ag-msg err"><b>Bu hesap başka bir cihaza kayıtlı.</b><br>Güvenlik nedeniyle her hesap tek cihazda kullanılabilir. Kendi hesabınsa yöneticiden cihaz sıfırlaması iste.</div>'+
+      '<div class="ag-center"><button class="ag-link" onclick="__ag.logout()">Çıkış yap</button></div>'
+    );
+  }
+  function renderOffline(){
+    view(
+      '<div class="ag-msg info">Çevrimdışısın ve oturum doğrulama süresi doldu. Devam etmek için internete bağlanıp tekrar giriş yap.</div>'+
+      '<button class="ag-btn" onclick="__ag.recheck()">Tekrar Dene</button>'+
+      '<div class="ag-center"><button class="ag-link" onclick="__ag.logout()">Çıkış yap</button></div>'
+    );
+  }
+
+  /* ---- Doğrulama ---- */
+  function validate(user){
+    var dev=deviceId();
+    return db.collection('onayli').doc(user.uid).get().then(function(onay){
+      var aktif = onay.exists && onay.data().aktif !== false;
+      if(!aktif) return {ok:false, reason:'pending'};
+      return db.collection('kullanicilar').doc(user.uid).get().then(function(k){
+        var kd = k.exists ? (k.data()||{}) : {};
+        var bound = kd.cihazId || '';
+        if(!bound){
+          return db.collection('kullanicilar').doc(user.uid).set({cihazId:dev, sonGiris:Date.now()},{merge:true})
+            .then(function(){ return {ok:true}; });
+        } else if(bound !== dev){
+          return {ok:false, reason:'device'};
+        }
+        db.collection('kullanicilar').doc(user.uid).set({sonGiris:Date.now()},{merge:true}).catch(function(){});
+        return {ok:true};
+      });
+    });
+  }
+  function graceOrBlock(user){
+    var g=readGate();
+    if(g && g.uid===user.uid && g.dev===deviceId() && (Date.now()-g.t) < GRACE_DAYS*86400000){ showApp(); }
+    else { renderOffline(); showGate(); }
+  }
+
+  auth.onAuthStateChanged(function(user){
+    if(!user){ clearGate(); renderLogin(); showGate(); return; }
+    showGate(); view(loading('Doğrulanıyor…'));
+    if(navigator.onLine===false){ graceOrBlock(user); return; }
+    validate(user).then(function(r){
+      if(r.ok){ saveGate(user.uid); showApp(); }
+      else if(r.reason==='device'){ renderDevice(); showGate(); }
+      else { renderPending(user); showGate(); }
+    }).catch(function(e){
+      if(e && e.code==='permission-denied'){ renderPending(user); showGate(); }
+      else { graceOrBlock(user); } // ağ hatası → grace
+    });
+  });
+
+  /* ---- Aksiyonlar (window.__ag) ---- */
+  window.__ag = {
+    tab:function(t){ if(t==='signup') renderSignup(); else renderLogin(); },
+    login:function(){
+      var em=(document.getElementById('ag-email')||{}).value||'';
+      var pw=(document.getElementById('ag-pass')||{}).value||'';
+      if(!em||!pw){ renderLogin('E-posta ve şifre gerekli.'); return; }
+      var btn=document.getElementById('ag-go'); if(btn){btn.disabled=true;btn.textContent='Giriş yapılıyor…';}
+      auth.signInWithEmailAndPassword(em.trim(),pw).catch(function(e){ renderLogin(hataMetni(e)); });
+    },
+    signup:function(){
+      var ad=(document.getElementById('ag-ad')||{}).value||'';
+      var em=(document.getElementById('ag-email')||{}).value||'';
+      var pw=(document.getElementById('ag-pass')||{}).value||'';
+      if(!ad.trim()||!em||!pw){ renderSignup('Tüm alanları doldurun.'); return; }
+      var btn=document.getElementById('ag-go'); if(btn){btn.disabled=true;btn.textContent='Kaydediliyor…';}
+      auth.createUserWithEmailAndPassword(em.trim(),pw).then(function(cred){
+        return db.collection('kullanicilar').doc(cred.user.uid).set({
+          ad:ad.trim(), email:em.trim(), cihazId:'', olusturma:Date.now()
+        });
+      }).catch(function(e){ renderSignup(hataMetni(e)); });
+      // Başarılıysa onAuthStateChanged → validate → renderPending
+    },
+    recheck:function(){ var u=auth.currentUser; if(u){ view(loading('Kontrol ediliyor…')); auth.onAuthStateChanged;
+      if(navigator.onLine===false){ graceOrBlock(u); return; }
+      validate(u).then(function(r){ if(r.ok){saveGate(u.uid);showApp();} else if(r.reason==='device'){renderDevice();} else {renderPending(u);} }).catch(function(){ graceOrBlock(u); });
+    } else { renderLogin(); } },
+    logout:function(){ auth.signOut().then(function(){ clearGate(); renderLogin(); }); }
+  };
+
+  window.cikisYap = function(){
+    if(confirm('Çıkış yapmak istiyor musunuz?')){ window.__ag.logout(); showGate(); }
+  };
+
+  function graceOnlyFallback(){
+    // Firebase yoksa: sadece localStorage grace (SDK yüklenemeyen ortam)
+    var g=readGate2();
+    if(g && (Date.now()-g.t)<GRACE_DAYS_2*86400000){ var el=document.getElementById('authgate'); if(el) el.style.display='none'; }
+  }
+  function readGate2(){ try{return JSON.parse(localStorage.getItem('vh_gate')||'null');}catch(e){return null;} }
+  var GRACE_DAYS_2=7;
+})();
 </script>
 </body>
 </html>

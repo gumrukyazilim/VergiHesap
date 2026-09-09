@@ -1,5 +1,5 @@
 // Vergi Hesap Service Worker
-const CACHE_NAME = 'vergihesap-v7';
+const CACHE_NAME = 'vergihesap-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,10 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './vendor/html2canvas.min.js',
-  './vendor/jspdf.umd.min.js'
+  './vendor/jspdf.umd.min.js',
+  './vendor/firebase-app-compat.js',
+  './vendor/firebase-auth-compat.js',
+  './vendor/firebase-firestore-compat.js'
 ];
 
 self.addEventListener('install', event => {
@@ -29,6 +32,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // Sadece kendi origin'imizi yönet; Firebase/Google API istekleri dokunulmadan geçsin
+  if (new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
     fetch(req)
       .then(res => {
