@@ -128,10 +128,11 @@ details.brk[open] summary::before{content:"▾ ";}
 /* ===== PDF / Yazdırma (tek A4 sayfa) ===== */
 #print-area{display:none;}
 @media print{
-  @page{size:A4 portrait;margin:9mm;}
+  /* margin:0 → tarayıcının otomatik URL/tarih/sayfa altbilgisi kaybolur; boşluğu içeriğe veriyoruz */
+  @page{size:A4 portrait;margin:0;}
   html,body{background:#fff !important;padding:0 !important;margin:0 !important;height:auto !important;}
   body>header,body>.wrap,body>.finalbar{display:none !important;}
-  #print-area{display:block !important;}
+  #print-area{display:block !important;padding:10mm 10mm 8mm !important;}
   .pr{page-break-inside:avoid;break-inside:avoid;}
   .pr-sec,.pr-grid,.pr-item,table.pr-t,table.pr-t tr,.pr-final{page-break-inside:avoid;break-inside:avoid;}
   *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
