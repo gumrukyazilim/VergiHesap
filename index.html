@@ -514,8 +514,14 @@ function syncMtvHacim(){
   var sel=document.getElementById('mtv-hacim');
   if(sel&&Array.prototype.some.call(sel.options,function(o){return o.value===hedef;}))sel.value=hedef;
 }
+/* Yakıt tipini MTV Araç Türü'ne yansıt: Elektrik→Tam Elektrikli, diğerleri→Otomobil */
+function syncMtvTur(){
+  var mtvTur=document.getElementById('mtv-tur'); if(!mtvTur)return;
+  var hedef=(txt('calc-yakit')==='ELEKTRİK')?'elektrikli':'otomobil';
+  if(mtvTur.value!==hedef){ mtvTur.value=hedef; onMtvTurChange(); }
+}
 function onYakitChange(){_otvManuel=false;document.getElementById('otv-oto').checked=true;
-  motorSecenekleri(txt('calc-yakit'));updateGTIP();syncMtvHacim();calc();}
+  motorSecenekleri(txt('calc-yakit'));syncMtvTur();updateGTIP();syncMtvHacim();calc();}
 function onMotorChange(){_otvManuel=false;document.getElementById('otv-oto').checked=true;updateGTIP();syncMtvHacim();calc();}
 
 /* ===== Segment düğmeleri ===== */
