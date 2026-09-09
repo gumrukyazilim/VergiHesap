@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3b82f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vergi Hesap">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Vergi Hesap — İthalat Vergisi & MTV</title>
+<style>
+:root{
+  --primary:#3b82f6; --primary-hover:#2563eb;
+  --danger:#ef4444; --warning:#f97316; --success:#10b981;
+  --bg:#f1f5f9; --surface:#ffffff; --surface-2:#f8fafc;
+  --input-bg:#ffffff; --border:#e2e8f0;
+  --text:#0f172a; --text-secondary:#475569; --text-muted:#94a3b8;
+  --r:14px; --r-sm:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --surface:#0f172a; --surface-2:#111a2e;
+  --input-bg:#0b1220; --border:#1e293b;
+  --text:#e2e8f0; --text-secondary:#94a3b8; --text-muted:#64748b;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1120; --surface:#0f172a; --surface-2:#111a2e;
+    --input-bg:#0b1220; --border:#1e293b;
+    --text:#e2e8f0; --text-secondary:#94a3b8; --text-muted:#64748b;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--text);font-size:15px;line-height:1.4;
+  padding-bottom:120px;}
+.wrap{max-width:560px;margin:0 auto;padding:0 12px;}
+
+/* Header */
+header{position:sticky;top:0;z-index:20;background:var(--surface);
+  border-bottom:1px solid var(--border);padding:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:calc(12px + env(safe-area-inset-top));}
+header h1{font-size:16px;font-weight:800;margin:0;display:flex;align-items:center;gap:8px;}
+header .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--primary),#7c3aed);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface-2);color:var(--text);font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;margin-top:12px;box-shadow:var(--shadow);}
+.card > .title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;
+  margin:0 0 12px;display:flex;align-items:center;gap:8px;color:var(--primary);}
+.card.red > .title{color:var(--danger);} .card.orange > .title{color:var(--warning);}
+.card.green > .title{color:var(--success);}
+.card > .title::before{content:"";width:4px;height:14px;border-radius:2px;background:currentColor;display:inline-block;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid.three{grid-template-columns:1fr 1fr 1fr;}
+.span2{grid-column:span 2;}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.field label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;}
+input,select{width:100%;height:46px;padding:0 12px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--input-bg);color:var(--text);
+  font-size:16px;font-weight:600;font-family:inherit;appearance:none;-webkit-appearance:none;}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;}
+input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+input[readonly]{opacity:.7;}
+
+/* Segmented toggles */
+.seg{display:flex;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;height:46px;}
+.seg button{flex:1;border:0;background:transparent;color:var(--text-secondary);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.seg button.active{background:var(--primary);color:#fff;}
+.seg button + button{border-left:1px solid var(--border);}
+
+.check{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);font-weight:600;cursor:pointer;}
+.check input{width:16px;height:16px;flex:none;}
+
+.gtip{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--primary);
+  background:rgba(59,130,246,.1);border-radius:6px;padding:6px 10px;margin-top:10px;text-align:center;font-weight:700;}
+
+/* MTV result */
+.mtv-out{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:14px;
+  background:rgba(249,115,22,.09);border:1px solid rgba(249,115,22,.25);border-radius:var(--r-sm);}
+.mtv-out small{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.mtv-out strong{font-size:22px;color:var(--warning);font-weight:800;}
+
+/* Breakdown */
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.row:last-child{border-bottom:0;}
+.row span:first-child{color:var(--text-secondary);}
+.row span:last-child{font-weight:700;}
+.row.strong span{color:var(--danger);font-weight:800;}
+.subhead{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);margin:14px 0 4px;}
+details.brk{margin-top:12px;}
+details.brk summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--primary);padding:8px 0;list-style:none;}
+details.brk summary::-webkit-details-marker{display:none;}
+details.brk summary::before{content:"▸ ";}
+details.brk[open] summary::before{content:"▾ ";}
+
+/* Sticky result bar */
+.finalbar{position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:linear-gradient(135deg,var(--primary) 0%,#7c3aed 100%);
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  box-shadow:0 -4px 20px rgba(0,0,0,.18);}
+.finalbar .inner{max-width:560px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.finalbar .lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,.9);}
+.finalbar .lbl small{display:block;font-size:9px;font-weight:600;color:rgba(255,255,255,.65);letter-spacing:.5px;}
+.finalbar .amt{text-align:right;}
+.finalbar .amt .eur{font-size:11px;color:rgba(255,255,255,.8);}
+.finalbar .amt .tl{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.otvsiz{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:12px 14px;
+  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:var(--r-sm);}
+.otvsiz .lbl{font-size:11px;font-weight:700;color:var(--success);}
+.otvsiz .amt{text-align:right;}
+.otvsiz .amt .eur{font-size:10px;color:var(--text-muted);}
+.otvsiz .amt .tl{font-size:17px;font-weight:800;color:var(--success);}
+.hint{font-size:10px;color:var(--text-muted);margin-top:6px;text-align:center;}
+
+/* ===== PDF / Yazdırma ===== */
+#print-area{display:none;}
+@media print{
+  @page{size:A4;margin:14mm;}
+  html,body{background:#fff !important;padding:0 !important;margin:0 !important;}
+  body>header,body>.wrap,body>.finalbar{display:none !important;}
+  #print-area{display:block !important;}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+}
+/* Print içeriği (ekranda gizli, çıktıda görünür) — kendi kapalı stili */
+.pr{font-family:Arial,Helvetica,sans-serif;color:#0f172a;font-size:12px;line-height:1.45;}
+.pr-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:10px;margin-bottom:14px;}
+.pr-brand{font-size:22px;font-weight:800;color:#3b82f6;letter-spacing:-.5px;}
+.pr-brand span{color:#7c3aed;}
+.pr-sub{font-size:11px;color:#64748b;margin-top:2px;}
+.pr-meta{text-align:right;font-size:11px;color:#475569;}
+.pr-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#3b82f6;margin:14px 0 6px;padding-bottom:3px;border-bottom:1px solid #e2e8f0;}
+.pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px;}
+.pr-item{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted #e2e8f0;}
+.pr-item b{font-weight:700;}
+.pr-item .k{color:#64748b;}
+table.pr-t{width:100%;border-collapse:collapse;margin-top:4px;}
+table.pr-t td{padding:5px 8px;border:1px solid #e2e8f0;font-size:12px;}
+table.pr-t td.k{color:#475569;width:60%;}
+table.pr-t td.v{text-align:right;font-weight:700;}
+table.pr-t tr.hl td{background:#fef2f2;color:#b91c1c;font-weight:800;}
+.pr-final{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:12px 14px;border-radius:8px;}
+.pr-final.otvsiz{background:#ecfdf5;border:1px solid #a7f3d0;}
+.pr-final.otvli{background:#eef2ff;border:1px solid #c7d2fe;}
+.pr-final .lbl{font-size:12px;font-weight:800;}
+.pr-final.otvsiz .lbl{color:#047857;} .pr-final.otvli .lbl{color:#4338ca;}
+.pr-final .amt{text-align:right;}
+.pr-final .amt .eur{font-size:11px;color:#64748b;}
+.pr-final .amt .tl{font-size:20px;font-weight:800;}
+.pr-final.otvsiz .amt .tl{color:#047857;} .pr-final.otvli .amt .tl{color:#4338ca;}
+.pr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center;}
+.btn-pdf{width:100%;height:48px;margin-top:12px;border:0;border-radius:var(--r-sm);
+  background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;}
+:root[data-theme="dark"] .btn-pdf{background:#1e293b;}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="logo">₺</span> Vergi Hesap</h1>
+  <div style="display:flex;gap:8px;">
+    <button class="icon-btn" onclick="pdfYazdir()" title="PDF / Yazdır">🖨️</button>
+    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="Tema">🌓</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- KUR & TİP -->
+  <div class="card">
+    <div class="title">💱 Kur & Araç Tipi</div>
+    <div class="grid three">
+      <div class="field">
+        <label>Para Birimi</label>
+        <select id="calc-currency"><option value="EUR" selected>EUR €</option><option value="USD">USD $</option></select>
+      </div>
+      <div class="field">
+        <label>EUR/TL</label>
+        <input id="calc-kur-eur" type="text" inputmode="decimal" value="51,1069">
+      </div>
+      <div class="field">
+        <label>USD/TL</label>
+        <input id="calc-kur-usd" type="text" inputmode="decimal" value="44,3684">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+      <button type="button" id="kur-btn" onclick="fetchKur(false)"
+        style="height:42px;padding:0 16px;border:0;border-radius:var(--r-sm);background:var(--primary);color:#fff;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;">🔄 TCMB Kur Çek</button>
+      <span id="kur-status" style="font-size:11px;font-weight:600;color:var(--text-muted);">Kur elle girilebilir</span>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="seg" id="seg-tip">
+        <button type="button" data-v="AVRUPA" class="active" onclick="setTip('AVRUPA')">🇪🇺 Avrupa</button>
+        <button type="button" data-v="AMERİKAN" onclick="setTip('AMERİKAN')">🇺🇸 Amerikan</button>
+      </div>
+      <div class="hint" id="tip-hint">Avrupa menşe: İlave GV / Gümrük V. manuel (varsayılan %0)</div>
+    </div>
+  </div>
+
+  <!-- ARAÇ & FATURA -->
+  <div class="card">
+    <div class="title">🚗 Araç & Fatura</div>
+    <div class="grid">
+      <div class="field">
+        <label>Yakıt Tipi</label>
+        <select id="calc-yakit" onchange="onYakitChange()">
+          <option value="BENZİNLİ">Benzinli</option>
+          <option value="DİZEL">Dizel</option>
+          <option value="ELEKTRİK">Elektrikli</option>
+          <option value="PLUG-IN">Plug-in Hibrit</option>
+          <option value="BENZİN HİBRİT">Benzin Hibrit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Motor Hacmi</label>
+        <select id="calc-motor" onchange="onMotorChange()"></select>
+      </div>
+      <div class="field span2">
+        <label>Teslim Şekli</label>
+        <div class="seg" id="seg-teslim">
+          <button type="button" data-v="CIF" class="active" onclick="setTeslim('CIF')">CIF</button>
+          <button type="button" data-v="EXW" onclick="setTeslim('EXW')">EXW</button>
+        </div>
+      </div>
+    </div>
+    <div class="gtip" id="gtip-display">GTİP: —</div>
+    <div class="grid" style="margin-top:12px;">
+      <div class="field"><label>Fatura (<span class="cur">€</span>)</label><input id="calc-fatura" type="text" inputmode="decimal" value="100.500"></div>
+      <div class="field"><label>Navlun (<span class="cur">€</span>)</label><input id="calc-navlun" type="text" inputmode="decimal" value="0"></div>
+      <div class="field"><label>Sigorta (<span class="cur">€</span>)</label><input id="calc-sigorta" type="text" inputmode="decimal" value="0"></div>
+      <div class="field"><label>Yurt Dışı Gider (<span class="cur">€</span>)</label><input id="calc-yurtdisi" type="text" inputmode="decimal" value="100"></div>
+      <div class="field"><label>KKDF (₺)</label><input id="calc-kkdf-tutar" type="text" inputmode="decimal" value="0" onfocus="_kkdfLocked=true"></div>
+      <div class="field"><label>Yurt İçi (₺)</label><input id="calc-yurtici" type="text" inputmode="decimal" value="25.000"></div>
+      <div class="field span2"><label>Damga V. (₺)</label><input id="calc-damga" type="text" inputmode="decimal" value="1.605,80"></div>
+    </div>
+  </div>
+
+  <!-- VERGİ ORANLARI -->
+  <div class="card red">
+    <div class="title">% Vergi Oranları</div>
+    <div class="grid three">
+      <div class="field">
+        <label>ÖTV %</label>
+        <select id="calc-otv-oran" onchange="_otvManuel=true;calc()">
+          <option value="0">0</option><option value="3">3</option><option value="4">4</option>
+          <option value="8">8</option><option value="25">25</option><option value="37">37</option>
+          <option value="45">45</option><option value="50">50</option><option value="55">55</option>
+          <option value="65">65</option><option value="70">70</option><option value="75">75</option>
+          <option value="80">80</option><option value="85">85</option><option value="90">90</option>
+          <option value="100">100</option><option value="150">150</option><option value="170">170</option>
+          <option value="220" selected>220</option>
+        </select>
+      </div>
+      <div class="field"><label>KDV %</label><input id="calc-kdv-oran" type="text" inputmode="numeric" value="20"></div>
+      <div class="field">
+        <label>Gümrük V. %</label>
+        <select id="calc-gv-oran"><option value="0" selected>0</option><option value="6">6</option><option value="10">10</option><option value="22">22</option></select>
+      </div>
+      <div class="field">
+        <label>İlave GV %</label>
+        <select id="calc-ilave-gv-oran"><option value="0" selected>0</option><option value="10">10</option><option value="25">25</option><option value="30">30</option><option value="40">40 (Çin)</option><option value="60">60</option></select>
+      </div>
+      <div class="field">
+        <label>KKDF %</label>
+        <select id="calc-kkdf-oran"><option value="0" selected>0</option><option value="6">6</option></select>
+      </div>
+      <div class="field">
+        <label>ATR'siz GV %</label>
+        <select id="calc-atr-oran"><option value="0" selected>0</option><option value="10">10</option><option value="22">22</option></select>
+      </div>
+    </div>
+    <div class="check" style="margin-top:10px;">
+      <input type="checkbox" id="otv-oto" checked onchange="_otvManuel=!this.checked;calc()">
+      <label for="otv-oto" style="margin:0;cursor:pointer;">ÖTV oranını yakıt/motora göre otomatik seç</label>
+    </div>
+  </div>
+
+  <!-- MASRAFLAR -->
+  <div class="card green">
+    <div class="title">👛 Masraflar</div>
+    <div class="grid">
+      <div class="field"><label>Gümrük H. (€)</label><input id="calc-gumruk" type="text" inputmode="decimal" value="2.000"></div>
+      <div class="field"><label>Nakliye (€)</label><input id="calc-nakliye" type="text" inputmode="decimal" value="2.500"></div>
+      <div class="field"><label>Almanya (€)</label><input id="calc-almanya" type="text" inputmode="decimal" value="0"></div>
+      <div class="field"><label>Ardiye (₺)</label><input id="calc-ardiye-tl" type="text" inputmode="decimal" value="0"></div>
+      <div class="field"><label>TSE Müh. (₺)</label><input id="calc-tse-muh-tl" type="text" inputmode="decimal" value="13.000"></div>
+      <div class="field"><label>TSE Harcı (₺)</label><input id="calc-tse-harci-manual" type="text" inputmode="decimal" value="22.080"></div>
+    </div>
+  </div>
+
+  <!-- MTV -->
+  <div class="card orange">
+    <div class="title">🧮 2026 Yıllık MTV</div>
+    <div class="grid">
+      <div class="field">
+        <label>Araç Türü</label>
+        <select id="mtv-tur" onchange="onMtvTurChange()">
+          <option value="otomobil" selected>Otomobil / Arazi</option>
+          <option value="elektrikli">Tam Elektrikli (%25)</option>
+          <option value="motosiklet">Motosiklet</option>
+          <option value="minibus">Minibüs</option>
+          <option value="panelvan">Panel Van & Karavan</option>
+          <option value="otobus">Otobüs</option>
+          <option value="kamyonet">Kamyonet / Kamyon</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>İlk Tescil Yılı</label>
+        <select id="mtv-tescil"><option value="post2018">01/01/2018 Sonrası</option><option value="pre2018">31/12/2017 ve Öncesi</option></select>
+      </div>
+      <div class="field">
+        <label>Yaş Grubu</label>
+        <select id="mtv-yas">
+          <option value="0">1 - 3 Yaş</option><option value="1">4 - 6 Yaş</option>
+          <option value="2">7 - 11 Yaş</option><option value="3">12 - 15 Yaş</option>
+          <option value="4">16 Yaş +</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Kriter</label>
+        <select id="mtv-hacim"></select>
+      </div>
+      <div class="field span2">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label>Taşıt Değeri (₺) <span style="color:var(--text-muted);font-size:10px;">(2018 sonrası)</span></label>
+          <label class="check"><input type="checkbox" id="mtv-oto-deger" checked onchange="calc()"> KDV Matrahı ile eşitle</label>
+        </div>
+        <input id="mtv-deger" type="text" inputmode="decimal" value="800.000" oninput="document.getElementById('mtv-oto-deger').checked=false;">
+      </div>
+    </div>
+    <div class="mtv-out">
+      <div><small>2026 Yıllık MTV</small><div style="font-size:10px;color:rgba(249,115,22,.8);">Resmî Gazete uyumlu</div></div>
+      <strong id="res-mtv-sonuc">0 ₺</strong>
+    </div>
+  </div>
+
+  <!-- ÖZET -->
+  <div class="card">
+    <div class="title">📊 Vergi & Maliyet Özeti</div>
+    <div class="subhead">Gümrük Vergileri</div>
+    <div class="row"><span>CIF Kıymet</span><span id="res-cif">0 ₺</span></div>
+    <div class="row"><span>GV Matrahı</span><span id="res-gv-matrah">0 ₺</span></div>
+    <div class="row"><span>G.V Tutarı</span><span id="res-gv-tutar">0 ₺</span></div>
+    <div class="row"><span>İlave GV</span><span id="res-ilave-gv">0 ₺</span></div>
+    <div class="row"><span>ATR'siz GV</span><span id="res-atr-tutar">0 ₺</span></div>
+    <div class="row"><span>Damga Vergisi</span><span id="res-damga">0 ₺</span></div>
+    <div class="subhead">ÖTV & KDV</div>
+    <div class="row"><span>TRT (%0.8)</span><span id="res-trt">0 ₺</span></div>
+    <div class="row"><span>ÖTV Matrahı</span><span id="res-otv-matrahi">0 ₺</span></div>
+    <div class="row strong"><span>Hesaplanan ÖTV</span><span id="res-otv-tutar">0 ₺</span></div>
+    <div class="row"><span>KDV Matrahı</span><span id="res-kdv-matrahi">0 ₺</span></div>
+    <div class="row"><span>KDV Tutarı</span><span id="res-kdv-tutar">0 ₺</span></div>
+    <div class="row strong"><span>VERGİ TOPLAMI</span><span id="res-toplam-vergi">0 ₺</span></div>
+    <div class="row"><span>MTV (final'e dahil)</span><span id="res-mtv-ozet" style="color:var(--warning);">0 ₺</span></div>
+
+    <div class="otvsiz">
+      <div class="lbl">ÖTV'SİZ FİNAL<br><small style="font-weight:600;color:var(--text-muted);">(ÖTV hariç maliyet)</small></div>
+      <div class="amt"><div class="eur" id="res-otvsiz-eur">0 €</div><div class="tl" id="res-otvsiz-maliyet">0 ₺</div></div>
+    </div>
+    <button class="btn-pdf" onclick="pdfYazdir()">PDF GÖNDER</button>
+  </div>
+
+  <div class="hint">Bu araç yalnızca ön bilgi amaçlıdır; resmî beyan değildir.</div>
+</div>
+
+<!-- PDF / Yazdırma alanı (ekranda gizli) -->
+<div id="print-area"></div>
+
+<!-- Sabit ÖTV'li final barı -->
+<div class="finalbar">
+  <div class="inner">
+    <div class="lbl">ÖTV'Lİ FİNAL<small>MTV DAHİL</small></div>
+    <div class="amt">
+      <div class="eur" id="res-genel-eur">0 €</div>
+      <div class="tl" id="res-genel-maliyet">0 ₺</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Yardımcılar ===== */
+function gV(id){var el=document.getElementById(id);if(!el||el.value==='')return 0;
+  return parseFloat(String(el.value).replace(/\./g,'').replace(/,/g,'.').trim())||0;}
+function txt(id){return document.getElementById(id)?.value||'';}
+function fmt(v,kurus){if(v===null||v===undefined||v==='')return'-';
+  var n=typeof v==='string'?parseFloat(v.replace(/\./g,'').replace(',','.')):v;
+  if(isNaN(n))return v;var fd=kurus?2:0;
+  return n.toLocaleString('tr-TR',{minimumFractionDigits:fd,maximumFractionDigits:fd});}
+function sH(id,v,eur){var el=document.getElementById(id);if(el)el.innerText=fmt(v,true)+(eur?' €':' ₺');}
+function formatCurrencyInput(i){var c=i.selectionStart,o=i.value;var v=o.replace(/[^0-9,]/g,'');
+  var p=v.split(',');if(p.length>2)v=p[0]+','+p.slice(1).join('');p=v.split(',');
+  var ip=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');var nv=p.length>1?ip+','+p[1]:ip;
+  if(o!==nv){i.value=nv;var np=c+(nv.length-o.length);try{i.setSelectionRange(np,np);}catch(e){}}}
+
+var _otvManuel=false, _kkdfLocked=false, _teslim='CIF', _tip='AVRUPA', _sonMTV=0;
+
+/* ===== TCMB Kur çekme (portalla aynı kaynak) ===== */
+var TCMB_PROXY_URL="https://script.google.com/macros/s/AKfycby0n1LaXDaznO6uBdM9DX8T-z7WQH2fVs9LPNMmlbGFI05YCKVarl-zXgry09p_-Io8kQ/exec";
+function _kurStatus(msg,color){var s=document.getElementById('kur-status');if(s){s.textContent=msg;s.style.color=color||'var(--text-muted)';}}
+function _setKurFields(eur,usd){
+  var e=document.getElementById('calc-kur-eur'),u=document.getElementById('calc-kur-usd');
+  if(e&&eur)e.value=Number(eur).toFixed(4).replace('.',',');
+  if(u&&usd)u.value=Number(usd).toFixed(4).replace('.',',');
+  calc();
+}
+function _parseTcmb(xml,code){
+  try{var doc=new DOMParser().parseFromString(xml,'text/xml');
+    var ns=doc.getElementsByTagName('Currency');
+    for(var i=0;i<ns.length;i++){if(ns[i].getAttribute('CurrencyCode')===code){
+      var fs=ns[i].getElementsByTagName('ForexSelling')[0];
+      if(fs&&fs.textContent)return parseFloat(fs.textContent);
+    }}
+  }catch(e){}
+  return null;
+}
+async function fetchKur(auto){
+  var btn=document.getElementById('kur-btn');
+  _kurStatus('TCMB bağlanıyor...','var(--text-muted)');
+  if(btn)btn.disabled=true;
+  var bugun=new Date().toLocaleDateString('tr-TR');
+  try{
+    // 1) GAS proxy (JSON) — portalın kullandığı endpoint
+    try{
+      var r=await fetch(TCMB_PROXY_URL,{cache:'no-store'});
+      if(r.ok){var d=await r.json();
+        if(d&&d.success&&d.rates&&d.rates.EUR&&d.rates.USD){
+          _setKurFields(d.rates.EUR.forexSelling,d.rates.USD.forexSelling);
+          _kurStatus('✓ TCMB Resmî ('+(d.date||bugun)+')','var(--success)');
+          try{localStorage.setItem('vergihesap_kur',JSON.stringify({eur:d.rates.EUR.forexSelling,usd:d.rates.USD.forexSelling,date:d.date||bugun}));}catch(e){}
+          return true;
+        }
+      }
+    }catch(e){}
+    // 2) Yedek: CORS proxy üzerinden TCMB today.xml
+    var proxies=[
+      function(u){return 'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u);},
+      function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);}
+    ];
+    var tcmbUrl='https://www.tcmb.gov.tr/kurlar/today.xml';
+    for(var i=0;i<proxies.length;i++){
+      try{
+        var r2=await fetch(proxies[i](tcmbUrl),{cache:'no-store'});
+        if(r2.ok){var xml=await r2.text();
+          var eur=_parseTcmb(xml,'EUR'),usd=_parseTcmb(xml,'USD');
+          if(eur&&usd){_setKurFields(eur,usd);
+            _kurStatus('✓ TCMB ('+bugun+')','var(--success)');
+            try{localStorage.setItem('vergihesap_kur',JSON.stringify({eur:eur,usd:usd,date:bugun}));}catch(e){}
+            return true;
+          }
+        }
+      }catch(e){}
+    }
+    _kurStatus(auto?'Kur elle girilebilir':'✗ Kur çekilemedi (elle girin)','var(--warning)');
+    return false;
+  }finally{if(btn)btn.disabled=false;}
+}
+
+/* ===== GTİP + ÖTV önerisi ===== */
+var GTIP_TABLE={
+  'BENZİNLİ':{'0-1000':'8703.21.10.10.00','1000-1500':'8703.22.10.10.00','1500-1600':'8703.23.19.11.00','1600-2000':'8703.23.19.12.00','2000-2500':'8703.23.19.13.00','2500-3000':'8703.23.19.13.00','3000+':'8703.24.10.10.00'},
+  'DİZEL':{'0-1000':'8703.31.10.10.00','1000-1500':'8703.31.10.10.00','1500-1600':'8703.32.19.11.00','1600-2000':'8703.32.19.12.00','2000-2500':'8703.32.19.13.00','2500-3000':'8703.33.19.10.11','3000+':'8703.33.19.10.12'},
+  'ELEKTRİK':{'<=160':'8703.80.10.00.11','>160':'8703.80.10.00.19'},
+  'PLUG-IN':{'0-1000':'8703.60.10.00.00','1000-1500':'8703.60.10.00.00','1500-1600':'8703.60.10.00.00','1600-2000':'8703.60.10.00.00','2000-2500':'8703.60.10.00.00','2500-3000':'8703.60.10.00.00','3000+':'8703.60.10.00.00'},
+  'BENZİN HİBRİT':{'0-1000':'8703.40.10.00.00','1000-1500':'8703.40.10.00.00','1500-1600':'8703.40.10.00.00','1600-2000':'8703.40.10.00.00','2000-2500':'8703.40.10.00.00','2500-3000':'8703.40.10.00.00','3000+':'8703.40.10.00.00'}
+};
+var OTV_SUGGEST={
+  'BENZİNLİ':{'0-1000':70,'1000-1500':80,'1500-1600':80,'1600-2000':150,'2000-2500':150,'2500-3000':220,'3000+':220},
+  'DİZEL':{'0-1000':70,'1000-1500':80,'1500-1600':80,'1600-2000':150,'2000-2500':150,'2500-3000':220,'3000+':220},
+  'ELEKTRİK':{'<=160':25,'>160':65},
+  'PLUG-IN':{'0-1000':45,'1000-1500':45,'1500-1600':45,'1600-2000':75,'2000-2500':75,'2500-3000':75,'3000+':75},
+  'BENZİN HİBRİT':{'0-1000':70,'1000-1500':70,'1500-1600':80,'1600-2000':80,'2000-2500':150,'2500-3000':150,'3000+':150}
+};
+
+function motorSecenekleri(yakit){
+  var sel=document.getElementById('calc-motor'), cur=sel.value;
+  if(yakit==='ELEKTRİK'){
+    sel.innerHTML='<option value="<=160">160 kW ve altı</option><option value=">160">160 kW üstü</option>';
+    if(cur==='<=160'||cur==='>160')sel.value=cur;
+  }else{
+    sel.innerHTML='<option value="0-1000">0–1000 cc</option><option value="1000-1500">1000–1500</option>'+
+      '<option value="1500-1600">1500–1600</option><option value="1600-2000">1600–2000</option>'+
+      '<option value="2000-2500">2000–2500</option><option value="2500-3000">2500–3000</option>'+
+      '<option value="3000+">3000+</option>';
+    if(Array.prototype.some.call(sel.options,function(o){return o.value===cur;}))sel.value=cur;else sel.value='1600-2000';
+  }
+}
+function updateGTIP(){
+  var yakit=txt('calc-yakit'), motor=txt('calc-motor');
+  var gtip=(GTIP_TABLE[yakit]||{})[motor]||'8703.23.19.12.00';
+  var otv=(OTV_SUGGEST[yakit]||{})[motor]||220;
+  var gd=document.getElementById('gtip-display');if(gd)gd.innerText='GTİP: '+gtip;
+  if(!_otvManuel){var s=document.getElementById('calc-otv-oran');if(s){s.value=String(otv);if(!s.value)s.value='220';}}
+}
+/* Motor hacmini MTV kriterine (cm³/kW) eşitle — portaldaki hacimMap ile birebir */
+function syncMtvHacim(){
+  var motor=txt('calc-motor');
+  var map={'0-1000':'1300','1000-1500':'1300','1500-1600':'1600','1600-2000':'1800',
+    '2000-2500':'2500','2500-3000':'3000','3000+':'4001','<=160':'2000','>160':'4001'};
+  var hedef=map[motor]; if(!hedef)return;
+  var sel=document.getElementById('mtv-hacim');
+  if(sel&&Array.prototype.some.call(sel.options,function(o){return o.value===hedef;}))sel.value=hedef;
+}
+function onYakitChange(){_otvManuel=false;document.getElementById('otv-oto').checked=true;
+  motorSecenekleri(txt('calc-yakit'));updateGTIP();syncMtvHacim();calc();}
+function onMotorChange(){_otvManuel=false;document.getElementById('otv-oto').checked=true;updateGTIP();syncMtvHacim();calc();}
+
+/* ===== Segment düğmeleri ===== */
+function setSeg(segId,v){var s=document.getElementById(segId);
+  Array.prototype.forEach.call(s.querySelectorAll('button'),function(b){b.classList.toggle('active',b.dataset.v===v);});}
+function setTeslim(v){_teslim=v;setSeg('seg-teslim',v);calc();}
+function setTip(v){_tip=v;setSeg('seg-tip',v);
+  // Portalla birebir: Amerikan → İlave GV %25 + Gümrük V %10; Avrupa → ikisi de %0 (manuel)
+  var igv=document.getElementById('calc-ilave-gv-oran'), gv=document.getElementById('calc-gv-oran');
+  if(v==='AMERİKAN'){ if(igv)igv.value='25'; if(gv)gv.value='10'; }
+  else { if(igv)igv.value='0'; if(gv)gv.value='0'; }
+  var h=document.getElementById('tip-hint');
+  if(h)h.textContent=(v==='AMERİKAN')
+    ? 'Amerikan: İlave GV %25 + Gümrük V %10 + 90.000 ₺ otomatik'
+    : 'Avrupa menşe: İlave GV / Gümrük V. manuel (varsayılan %0)';
+  calc();}
+
+/* ===== MTV kriter listeleri ===== */
+function onMtvTurChange(){
+  var tur=txt('mtv-tur'),sel=document.getElementById('mtv-hacim'),cur=sel.value;
+  if(tur==='elektrikli'){
+    sel.innerHTML='<option value="1300">70 kW ve altı</option><option value="1600">71 - 85 kW</option>'+
+    '<option value="1800">86 - 105 kW</option><option value="2000">106 - 120 kW</option>'+
+    '<option value="2500">121 - 150 kW</option><option value="3000">151 - 180 kW</option>'+
+    '<option value="3500">181 - 210 kW</option><option value="4000">211 - 240 kW</option>'+
+    '<option value="4001">241 kW ve üstü</option>';
+  }else if(tur==='motosiklet'){
+    sel.innerHTML='<option value="250">100 - 250 cm³</option><option value="650">251 - 650 cm³</option>'+
+    '<option value="1200">651 - 1200 cm³</option><option value="1201">1201 cm³ ve üstü</option>';
+  }else if(tur==='minibus'||tur==='otobus'){
+    sel.innerHTML='<option value="25">25 Kişiye kadar</option><option value="35">26 - 35 Kişi</option>'+
+    '<option value="45">36 - 45 Kişi</option><option value="46">46 Kişi ve üstü</option>';
+  }else if(tur==='kamyonet'||tur==='panelvan'){
+    sel.innerHTML='<option value="1500">1.500 kg\'a kadar</option><option value="3500">1.501 - 3.500 kg</option>'+
+    '<option value="5000">3.501 - 5.000 kg</option><option value="10000">5.001 - 10.000 kg</option>'+
+    '<option value="20000">10.001 - 20.000 kg</option><option value="20001">20.001 kg ve üstü</option>';
+  }else{
+    sel.innerHTML='<option value="1300">1300 cm³ ve altı</option><option value="1600" selected>1301 - 1600 cm³</option>'+
+    '<option value="1800">1601 - 1800 cm³</option><option value="2000">1801 - 2000 cm³</option>'+
+    '<option value="2500">2001 - 2500 cm³</option><option value="3000">2501 - 3000 cm³</option>'+
+    '<option value="3500">3001 - 3500 cm³</option><option value="4000">3501 - 4000 cm³</option>'+
+    '<option value="4001">4001 cm³ ve üstü</option>';
+  }
+  if(Array.prototype.some.call(sel.options,function(o){return o.value===cur;}))sel.value=cur;
+  syncMtvHacim();
+  calc();
+}
+
+/* ===== MTV hesap (portalla birebir) ===== */
+function calculateMTV(){
+  var tur=txt('mtv-tur')||'otomobil', tescil=txt('mtv-tescil')||'post2018';
+  var hacim=parseInt(txt('mtv-hacim')||'1600')||0;
+  var yas=parseInt(txt('mtv-yas')||'0')||0;
+  var deger=parseFloat(String(txt('mtv-deger')||'0').replace(/\./g,'').replace(/,/g,'.'))||0;
+  var mtv=0, y2=(yas<=1)?0:(yas<=3)?1:2;
+  if(tur==='otomobil'||tur==='elektrikli'){
+    if(tescil==='pre2018'){
+      if(hacim<=1300)mtv=[5750,4010,2238,1689,593][yas];
+      else if(hacim<=1600)mtv=[10016,7510,4354,3077,1181][yas];
+      else if(hacim<=1800)mtv=[17705,13829,8145,4957,1917][yas];
+      else if(hacim<=2000)mtv=[27898,21478,12624,7510,2958][yas];
+      else if(hacim<=2500)mtv=[41840,30372,18977,11333,4479][yas];
+      else if(hacim<=3000)mtv=[58347,50754,31704,17044,6255][yas];
+      else if(hacim<=3500)mtv=[88859,79955,48158,24031,8813][yas];
+      else if(hacim<=4000)mtv=[139721,120647,71048,31704,12624][yas];
+      else mtv=[228681,171485,101555,45632,17705][yas];
+    }else{
+      if(hacim<=1300){
+        if(deger<=309100)mtv=[5750,4010,2238,1689,593][yas];
+        else if(deger<=541500)mtv=[6319,4409,2459,1861,655][yas];
+        else mtv=[6902,4807,2693,2032,706][yas];
+      }else if(hacim<=1600){
+        if(deger<=309100)mtv=[10016,7510,4354,3077,1181][yas];
+        else if(deger<=541500)mtv=[11023,8264,4794,3375,1290][yas];
+        else mtv=[12028,9012,5220,3685,1408][yas];
+      }else if(hacim<=1800){
+        if(deger<=775100)mtv=[19472,15226,8948,5458,2113][yas];
+        else mtv=[21251,16600,9775,5964,2307][yas];
+      }else if(hacim<=2000){
+        if(deger<=775100)mtv=[30679,23625,13886,8264,3248][yas];
+        else mtv=[33474,25784,15147,9012,3547][yas];
+      }else if(hacim<=2500){
+        if(deger<=968100)mtv=[46027,33413,20874,12465,4930][yas];
+        else mtv=[50217,36448,22768,13606,5378][yas];
+      }else if(hacim<=3000){
+        if(deger<=1937500)mtv=[64175,55837,34878,18758,6875][yas];
+        else mtv=[70018,60905,38053,20466,7503][yas];
+      }else if(hacim<=3500){
+        if(deger<=1937500)mtv=[97744,87954,52976,26443,9684][yas];
+        else mtv=[106641,95940,57791,28839,10578][yas];
+      }else if(hacim<=4000){
+        if(deger<=3101800)mtv=[153684,132712,78152,34878,13886][yas];
+        else mtv=[167671,144770,85271,38053,15147][yas];
+      }else{
+        if(deger<=3683200)mtv=[251554,188627,111714,50206,19472][yas];
+        else mtv=[274415,205781,121873,54769,21251][yas];
+      }
+    }
+    if(tur==='elektrikli')mtv=mtv*0.25;
+  }else if(tur==='motosiklet'){
+    if(hacim<=250)mtv=[1069,799,589,362,136][yas];
+    else if(hacim<=650)mtv=[2214,1676,1069,589,362][yas];
+    else if(hacim<=1200)mtv=[5719,3398,1676,1069,589][yas];
+    else mtv=[13876,9167,5719,4540,2214][yas];
+  }else if(tur==='minibus'){
+    mtv=[6875,4540,2214][y2];
+  }else if(tur==='panelvan'){
+    if(hacim<=1900)mtv=[9167,5719,3398][y2];else mtv=[13876,9167,5719][y2];
+  }else if(tur==='otobus'){
+    if(hacim<=25)mtv=[17370,10372,4540][y2];
+    else if(hacim<=35)mtv=[20831,17370,6875][y2];
+    else if(hacim<=45)mtv=[23182,19662,9167][y2];
+    else mtv=[27811,23182,13876][y2];
+  }else if(tur==='kamyonet'){
+    if(hacim<=1500)mtv=[6163,4094,2004][y2];
+    else if(hacim<=3500)mtv=[12488,7234,4094][y2];
+    else if(hacim<=5000)mtv=[18763,15616,6163][y2];
+    else if(hacim<=10000)mtv=[20831,17690,8292][y2];
+    else if(hacim<=20000)mtv=[25036,20831,12488][y2];
+    else mtv=[31315,25036,14548][y2];
+  }
+  _sonMTV=mtv||0;
+  var el=document.getElementById('res-mtv-sonuc');if(el)el.innerText=fmt(mtv)+' ₺';
+  var oz=document.getElementById('res-mtv-ozet');if(oz)oz.innerText=fmt(mtv)+' ₺';
+  return _sonMTV;
+}
+
+/* ===== Vergi + maliyet hesap (portalla birebir) ===== */
+function calc(){
+  var currency=txt('calc-currency')||'EUR';
+  var kurEUR=gV('calc-kur-eur')||51.1069, kurUSD=gV('calc-kur-usd')||44.3684;
+  var kur=currency==='EUR'?kurEUR:kurUSD;
+
+  var fat=gV('calc-fatura'),nav=gV('calc-navlun'),sig=gV('calc-sigorta');
+  var yd=gV('calc-yurtdisi'),yi=gV('calc-yurtici'),dmg=gV('calc-damga');
+  var otvO=gV('calc-otv-oran'),kdvO=gV('calc-kdv-oran'),atrO=gV('calc-atr-oran');
+  var gvO=gV('calc-gv-oran'),ilvO=gV('calc-ilave-gv-oran'),kkdfOran=gV('calc-kkdf-oran');
+
+  var fatTL=fat*kur, kkdfInput=document.getElementById('calc-kkdf-tutar');
+  if(kkdfOran===0){_kkdfLocked=false;if(kkdfInput)kkdfInput.value='0';}
+  else if(kkdfOran>0&&!_kkdfLocked){if(kkdfInput)kkdfInput.value=fmt(fatTL*(kkdfOran/100),true);}
+  var kkdfTL=gV('calc-kkdf-tutar');
+
+  var nav2=nav,sig2=sig;
+  if(_teslim==='CIF'){nav2=0;sig2=0;}
+  var topD=fat+nav2+sig2+yd;
+  var nTL=nav2*kur,sTL=sig2*kur,cif=fatTL+nTL+sTL,ydTL=yd*kur;
+
+  var gvM=cif+ydTL;
+  var atrT=gvM*(atrO/100),gvT=gvM*(gvO/100),ilvT=gvM*(ilvO/100);
+  var araT=gvM+yi+kkdfTL;
+  var trtMatrah=araT+dmg+gvT+ilvT;
+  var trt=trtMatrah*0.008;
+  var otvM=trtMatrah+trt+atrT;
+
+  var yakit=txt('calc-yakit')||'BENZİNLİ', motor=txt('calc-motor')||'1600-2000';
+  if(!_otvManuel){
+    if(yakit==='ELEKTRİK'){
+      if(motor==='<=160'){otvO=(otvM<=1650000)?25:55;}else{otvO=(otvM<=1650000)?65:75;}
+    }else if(yakit==='PLUG-IN'){
+      if(motor==='0-1000'||motor==='1000-1500'||motor==='1500-1600'){otvO=(otvM<=1350000)?45:75;}
+      else if(motor==='1600-2000'){otvO=(otvM<=1350000)?85:100;}
+      else{otvO=(otvM<=1650000)?150:220;}
+    }else if(yakit==='BENZİN HİBRİT'){
+      if(motor==='1600-2000'){otvO=(otvM<=1250000)?70:80;}
+      else if(motor==='2000-2500'){otvO=(otvM<=1650000)?150:170;}
+      else if(motor==='2500-3000'||motor==='3000+'){otvO=220;}
+      else{
+        if(motor==='0-1000'||motor==='1000-1500'){otvO=(otvM<=650000)?70:(otvM<=900000)?75:(otvM<=1100000)?80:90;}
+        else{otvO=(otvM<=850000)?75:(otvM<=1100000)?80:(otvM<=1650000)?90:100;}
+      }
+    }else{
+      if(motor==='0-1000'||motor==='1000-1500'){otvO=(otvM<=650000)?70:(otvM<=900000)?75:(otvM<=1100000)?80:90;}
+      else if(motor==='1500-1600'){otvO=(otvM<=850000)?75:(otvM<=1100000)?80:(otvM<=1650000)?90:100;}
+      else if(motor==='1600-2000'){otvO=(otvM<=1650000)?150:170;}
+      else{otvO=(otvM<=1650000)?150:(otvM<=2750000)?170:220;}
+    }
+    var s=document.getElementById('calc-otv-oran');
+    if(s&&parseFloat(s.value)!==otvO){s.value=String(otvO);if(!s.value)s.value='220';}
+  }else{otvO=parseFloat(txt('calc-otv-oran'))||0;}
+
+  var otvT=otvM*(otvO/100);
+  var kdvM=otvM+otvT;
+  var kdvT=kdvM*(kdvO/100);
+  var topV=kdvT+trt+otvT+atrT+dmg+gvT+ilvT+kkdfTL;
+  var aEUR=kur?(topV/kur)+topD:0;
+
+  var dEUR=gV('calc-gumruk')+gV('calc-nakliye')+gV('calc-almanya')+
+    (kur?(gV('calc-ardiye-tl')+gV('calc-tse-harci-manual')+gV('calc-tse-muh-tl')+(_tip==='AMERİKAN'?90000:0))/kur:0);
+
+  /* Özet */
+  sH('res-cif',cif);sH('res-gv-matrah',gvM);sH('res-gv-tutar',gvT);
+  sH('res-ilave-gv',ilvT);sH('res-atr-tutar',atrT);sH('res-damga',dmg);
+  sH('res-trt',trt);sH('res-otv-matrahi',otvM);sH('res-otv-tutar',otvT);
+  sH('res-kdv-matrahi',kdvM);sH('res-kdv-tutar',kdvT);sH('res-toplam-vergi',topV);
+
+  /* ÖTV'siz final */
+  var otvSizKdvT=otvM*(kdvO/100);
+  var topVsiz=otvSizKdvT+trt+atrT+dmg+gvT+ilvT+kkdfTL;
+  sH('res-otvsiz-eur',(kur?(topVsiz/kur)+topD+dEUR:0),true);
+  sH('res-otvsiz-maliyet',((topVsiz/kur)+topD+dEUR)*kur);
+
+  /* MTV: KDV matrahı ile eşitle seçiliyse taşıt değerini güncelle
+     (MTV türü kullanıcının seçimidir; yakıttan zorla değiştirilmez) */
+  var oto=document.getElementById('mtv-oto-deger');
+  if(oto&&oto.checked){var md=document.getElementById('mtv-deger');if(md)md.value=fmt(kdvM);}
+  var mtv=calculateMTV();
+
+  /* ÖTV'li final (MTV dahil) */
+  sH('res-genel-eur',aEUR+dEUR+(kur?mtv/kur:0),true);
+  sH('res-genel-maliyet',(aEUR+dEUR)*kur+mtv);
+
+  saveState();
+}
+
+/* ===== Kalıcılık (localStorage) ===== */
+var STORE_IDS=['calc-currency','calc-kur-eur','calc-kur-usd','calc-yakit','calc-motor','calc-fatura',
+  'calc-navlun','calc-sigorta','calc-yurtdisi','calc-kkdf-tutar','calc-yurtici','calc-damga',
+  'calc-otv-oran','calc-kdv-oran','calc-gv-oran','calc-ilave-gv-oran','calc-kkdf-oran','calc-atr-oran',
+  'calc-gumruk','calc-nakliye','calc-almanya','calc-ardiye-tl','calc-tse-muh-tl','calc-tse-harci-manual',
+  'mtv-tur','mtv-tescil','mtv-yas','mtv-hacim','mtv-deger'];
+function saveState(){
+  try{
+    var s={};STORE_IDS.forEach(function(id){var e=document.getElementById(id);if(e)s[id]=e.value;});
+    s._teslim=_teslim;s._tip=_tip;s._otvManuel=_otvManuel;
+    s._oto=document.getElementById('mtv-oto-deger').checked;
+    localStorage.setItem('vergihesap_state',JSON.stringify(s));
+  }catch(e){}
+}
+function loadState(){
+  var s;try{s=JSON.parse(localStorage.getItem('vergihesap_state')||'null');}catch(e){s=null;}
+  if(!s)return;
+  if(s['calc-yakit']){document.getElementById('calc-yakit').value=s['calc-yakit'];motorSecenekleri(s['calc-yakit']);}
+  if(s['mtv-tur']){document.getElementById('mtv-tur').value=s['mtv-tur'];onMtvTurChange();}
+  STORE_IDS.forEach(function(id){if(s[id]!==undefined){var e=document.getElementById(id);if(e)e.value=s[id];}});
+  if(s._teslim){_teslim=s._teslim;setSeg('seg-teslim',_teslim);}
+  if(s._tip){_tip=s._tip;setSeg('seg-tip',_tip);
+    var h=document.getElementById('tip-hint');
+    if(h)h.textContent=(_tip==='AMERİKAN')?'Amerikan: İlave GV %25 + Gümrük V %10 + 90.000 ₺ otomatik':'Avrupa menşe: İlave GV / Gümrük V. manuel (varsayılan %0)';}
+  _otvManuel=!!s._otvManuel;document.getElementById('otv-oto').checked=!_otvManuel;
+  if(s._oto!==undefined)document.getElementById('mtv-oto-deger').checked=s._oto;
+}
+
+/* ===== Tema ===== */
+function toggleTheme(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var next=cur==='dark'?'light':(cur==='light'?'dark':(matchMedia('(prefers-color-scheme:dark)').matches?'light':'dark'));
+  document.documentElement.setAttribute('data-theme',next);
+  try{localStorage.setItem('vergihesap_theme',next);}catch(e){}
+}
+(function(){try{var t=localStorage.getItem('vergihesap_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+
+/* ===== Profesyonel PDF / Yazdırma ===== */
+function pdfYazdir(){
+  var g=function(id){return document.getElementById(id);};
+  var selText=function(id){var e=g(id);return (e&&e.selectedIndex>=0)?e.options[e.selectedIndex].text:(e?e.value:'');};
+  var v=function(id){return g(id)?g(id).value:'';};
+  var r=function(id){return g(id)?g(id).innerText:'';};
+  var curSym=txt('calc-currency')==='USD'?'$':'€';
+  var kur=txt('calc-currency')==='USD'?v('calc-kur-usd'):v('calc-kur-eur');
+  var tarih=new Date().toLocaleDateString('tr-TR');
+  var saat=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  var otvOran=v('calc-otv-oran');
+  function it(k,val){return '<div class="pr-item"><span class="k">'+k+'</span><b>'+val+'</b></div>';}
+  function tr(k,val,hl){return '<tr'+(hl?' class="hl"':'')+'><td class="k">'+k+'</td><td class="v">'+val+'</td></tr>';}
+
+  var araclar=it('Yakıt',selText('calc-yakit'))+it('Motor Hacmi',selText('calc-motor'))+
+    it('GTİP',r('gtip-display').replace('GTİP: ',''))+it('Menşe',_tip)+
+    it('Teslim',_teslim)+it('Para / Kur',txt('calc-currency')+' · '+kur);
+
+  var fatura=it('Fatura',v('calc-fatura')+' '+curSym)+it('Navlun',v('calc-navlun')+' '+curSym)+
+    it('Sigorta',v('calc-sigorta')+' '+curSym)+it('Yurt Dışı',v('calc-yurtdisi')+' '+curSym)+
+    it('KKDF',v('calc-kkdf-tutar')+' ₺')+it('Yurt İçi',v('calc-yurtici')+' ₺')+
+    it('Damga V.',v('calc-damga')+' ₺')+it('Gümrük H.',v('calc-gumruk')+' '+curSym)+
+    it('Nakliye',v('calc-nakliye')+' '+curSym)+it('Almanya',v('calc-almanya')+' '+curSym)+
+    it('Ardiye',v('calc-ardiye-tl')+' ₺')+it('TSE Müh.',v('calc-tse-muh-tl')+' ₺')+
+    it('TSE Harcı',v('calc-tse-harci-manual')+' ₺');
+
+  var tablo=tr('CIF Kıymet',r('res-cif'))+tr('GV Matrahı',r('res-gv-matrah'))+
+    tr('Gümrük V. Tutarı',r('res-gv-tutar'))+tr('İlave GV',r('res-ilave-gv'))+
+    tr("ATR'siz GV",r('res-atr-tutar'))+tr('Damga Vergisi',r('res-damga'))+
+    tr('TRT (%0.8)',r('res-trt'))+tr('ÖTV Matrahı',r('res-otv-matrahi'))+
+    tr('Hesaplanan ÖTV (%'+otvOran+')',r('res-otv-tutar'),true)+
+    tr('KDV Matrahı',r('res-kdv-matrahi'))+tr('KDV Tutarı',r('res-kdv-tutar'))+
+    tr('VERGİ TOPLAMI',r('res-toplam-vergi'),true)+
+    tr('2026 Yıllık MTV',r('res-mtv-sonuc'));
+
+  g('print-area').innerHTML=
+    '<div class="pr">'+
+      '<div class="pr-head"><div><div class="pr-brand">VERGİ<span>HESAP</span></div>'+
+        '<div class="pr-sub">Araç İthalat Vergi &amp; Maliyet Raporu</div></div>'+
+        '<div class="pr-meta">'+tarih+'<br>'+saat+'</div></div>'+
+      '<div class="pr-sec">Araç Bilgileri</div><div class="pr-grid">'+araclar+'</div>'+
+      '<div class="pr-sec">Fatura &amp; Masraflar</div><div class="pr-grid">'+fatura+'</div>'+
+      '<div class="pr-sec">Vergi Dökümü</div><table class="pr-t"><tbody>'+tablo+'</tbody></table>'+
+      '<div class="pr-sec">Sonuç</div>'+
+      '<div class="pr-final otvsiz"><div class="lbl">ÖTV\'SİZ FİNAL</div>'+
+        '<div class="amt"><div class="eur">'+r('res-otvsiz-eur')+'</div><div class="tl">'+r('res-otvsiz-maliyet')+'</div></div></div>'+
+      '<div class="pr-final otvli"><div class="lbl">ÖTV\'Lİ FİNAL <span style="font-weight:600;font-size:10px;">(MTV dahil)</span></div>'+
+        '<div class="amt"><div class="eur">'+r('res-genel-eur')+'</div><div class="tl">'+r('res-genel-maliyet')+'</div></div></div>'+
+      '<div class="pr-foot">Bu rapor Vergi Hesap uygulamasıyla '+tarih+' tarihinde üretilmiştir. Yalnızca ön bilgi amaçlıdır; resmî beyan / gümrük belgesi değildir.</div>'+
+    '</div>';
+  setTimeout(function(){window.print();},60);
+}
+
+/* ===== Başlat ===== */
+function initInputs(){
+  /* para birimi etiketlerini güncelle */
+  function updCur(){var c=txt('calc-currency')==='USD'?'$':'€';
+    Array.prototype.forEach.call(document.querySelectorAll('.cur'),function(s){s.textContent=c;});}
+  document.getElementById('calc-currency').addEventListener('change',function(){updCur();calc();});
+  /* tüm tutar inputlarına biçimlendirme + canlı hesap */
+  ['calc-fatura','calc-navlun','calc-sigorta','calc-yurtdisi','calc-kkdf-tutar','calc-yurtici',
+   'calc-damga','calc-gumruk','calc-nakliye','calc-almanya','calc-ardiye-tl','calc-tse-muh-tl',
+   'calc-tse-harci-manual','mtv-deger','calc-kur-eur','calc-kur-usd'].forEach(function(id){
+    var e=document.getElementById(id);if(!e)return;
+    e.addEventListener('input',function(){formatCurrencyInput(e);calc();});
+  });
+  document.getElementById('calc-kdv-oran').addEventListener('input',calc);
+  ['calc-gv-oran','calc-ilave-gv-oran','calc-kkdf-oran','calc-atr-oran','calc-currency',
+   'mtv-tescil','mtv-yas','mtv-hacim'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.addEventListener('change',calc);
+  });
+  updCur();
+}
+document.addEventListener('DOMContentLoaded',function(){
+  motorSecenekleri('BENZİNLİ');
+  onMtvTurChange();
+  initInputs();
+  loadState();
+  updateGTIP();
+  calc();
+  // Açılışta TCMB kurunu arka planda bir kez çek (çevrimdışıysa eldeki değerler kalır)
+  if(navigator.onLine!==false){ setTimeout(function(){ fetchKur(true); }, 300); }
+});
+
+/* ===== PWA ===== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+}
+</script>
+</body>
+</html>
