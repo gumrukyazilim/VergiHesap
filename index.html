@@ -125,6 +125,18 @@ details.brk[open] summary::before{content:"▾ ";}
 .otvsiz .amt .tl{font-size:17px;font-weight:800;color:var(--success);}
 .hint{font-size:10px;color:var(--text-muted);margin-top:6px;text-align:center;}
 
+/* ===== ÖTV'siz gümrük tablosu (mobil: 2 sütun, matrah alt satır) ===== */
+.otstbl-wrap{margin-top:4px;}
+table.otstbl{width:100%;border-collapse:collapse;}
+table.otstbl td{padding:8px 0;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.otstbl td .lbl{font-weight:600;color:var(--text);font-size:13px;}
+table.otstbl td .oran{color:var(--text-muted);font-size:11px;font-weight:600;margin-left:4px;}
+table.otstbl td .m{display:block;color:var(--text-muted);font-size:10.5px;margin-top:2px;}
+table.otstbl td.tutar{text-align:right;font-weight:700;white-space:nowrap;font-size:13.5px;}
+table.otstbl tr.total td{border-top:2px solid var(--warning);border-bottom:0;padding-top:10px;}
+table.otstbl tr.total .lbl{color:var(--warning);font-weight:800;}
+table.otstbl tr.total td.tutar{color:var(--warning);font-weight:800;font-size:16px;}
+
 /* ===== PDF / Yazdırma (tek A4 sayfa) ===== */
 #print-area{display:none;}
 @media print{
@@ -347,6 +359,26 @@ table.pr-t tr.hl td{background:#fef2f2;color:#b91c1c;font-weight:800;}
       <div><small>2026 Yıllık MTV</small><div style="font-size:10px;color:rgba(249,115,22,.8);">Resmî Gazete uyumlu</div></div>
       <strong id="res-mtv-sonuc">0 ₺</strong>
     </div>
+  </div>
+
+  <!-- ÖTV'SİZ ÇEKİŞ — GÜMRÜKTE ÖDENECEK -->
+  <div class="card orange">
+    <div class="title">🚢 ÖTV'siz Çekiş — Gümrükte Ödenecek</div>
+    <div class="otstbl-wrap">
+      <table class="otstbl">
+        <tbody>
+          <tr id="ots-row-gv"><td><span class="lbl">Gümrük V.<span class="oran" id="ots-gv-o">%0</span></span><small class="m">Matrah: <span id="ots-gv-m">0 ₺</span></small></td><td class="tutar" id="ots-gv-t">0 ₺</td></tr>
+          <tr id="ots-row-igv"><td><span class="lbl">İlave GV<span class="oran" id="ots-igv-o">%0</span></span><small class="m">Matrah: <span id="ots-igv-m">0 ₺</span></small></td><td class="tutar" id="ots-igv-t">0 ₺</td></tr>
+          <tr id="ots-row-atr"><td><span class="lbl">ATR'siz GV<span class="oran" id="ots-atr-o">%0</span></span><small class="m">Matrah: <span id="ots-atr-m">0 ₺</span></small></td><td class="tutar" id="ots-atr-t">0 ₺</td></tr>
+          <tr id="ots-row-damga"><td><span class="lbl">Damga V.</span></td><td class="tutar" id="ots-damga-t">0 ₺</td></tr>
+          <tr id="ots-row-kkdf"><td><span class="lbl">KKDF<span class="oran" id="ots-kkdf-o">%0</span></span><small class="m">Matrah: <span id="ots-kkdf-m">0 ₺</span></small></td><td class="tutar" id="ots-kkdf-t">0 ₺</td></tr>
+          <tr id="ots-row-trt"><td><span class="lbl">TRT<span class="oran">%0.8</span></span><small class="m">Matrah: <span id="ots-trt-m">0 ₺</span></small></td><td class="tutar" id="ots-trt-t">0 ₺</td></tr>
+          <tr id="ots-row-kdv"><td><span class="lbl">G.Giriş KDV<span class="oran" id="ots-kdv-o">%20</span></span><small class="m">Matrah: <span id="ots-kdv-m">0 ₺</span></small></td><td class="tutar" id="ots-kdv-t">0 ₺</td></tr>
+          <tr class="total"><td><span class="lbl">GÜMRÜK TOPLAMI</span></td><td class="tutar" id="ots-toplam">0 ₺</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="hint" style="text-align:left;margin-top:8px;">ÖTV yatırmadan (ÖTV'siz) araç çekilirse gümrükte peşin ödenecek vergilerdir.</div>
   </div>
 
   <!-- ÖZET -->
@@ -726,6 +758,20 @@ function calc(){
   var topVsiz=otvSizKdvT+trt+atrT+dmg+gvT+ilvT+kkdfTL;
   sH('res-otvsiz-eur',(kur?(topVsiz/kur)+topD+dEUR:0),true);
   sH('res-otvsiz-maliyet',((topVsiz/kur)+topD+dEUR)*kur);
+
+  /* ÖTV'siz çekiş — gümrükte ödenecek vergiler (kalem kalem) */
+  var setO=function(id,v){var e=document.getElementById(id);if(e)e.innerText='%'+v;};
+  sH('ots-gv-m',gvM);   setO('ots-gv-o',gvO);   sH('ots-gv-t',gvT);
+  sH('ots-igv-m',gvM);  setO('ots-igv-o',ilvO); sH('ots-igv-t',ilvT);
+  sH('ots-atr-m',gvM);  setO('ots-atr-o',atrO); sH('ots-atr-t',atrT);
+  sH('ots-damga-t',dmg);
+  sH('ots-kkdf-m',fatTL); setO('ots-kkdf-o',kkdfOran); sH('ots-kkdf-t',kkdfTL);
+  sH('ots-trt-m',trtMatrah); sH('ots-trt-t',trt);
+  sH('ots-kdv-m',otvM); setO('ots-kdv-o',kdvO); sH('ots-kdv-t',otvSizKdvT);
+  sH('ots-toplam',topVsiz);
+  var hideRow=function(id,v){var e=document.getElementById(id);if(e)e.style.display=(v>0)?'':'none';};
+  hideRow('ots-row-gv',gvT); hideRow('ots-row-igv',ilvT); hideRow('ots-row-atr',atrT);
+  hideRow('ots-row-damga',dmg); hideRow('ots-row-kkdf',kkdfTL); hideRow('ots-row-trt',trt);
 
   /* MTV: KDV matrahı ile eşitle seçiliyse taşıt değerini güncelle
      (MTV türü kullanıcının seçimidir; yakıttan zorla değiştirilmez) */
