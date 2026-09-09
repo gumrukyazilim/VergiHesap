@@ -166,6 +166,7 @@ table.pr-t td{padding:2.5px 6px;border:1px solid #e2e8f0;font-size:10px;}
 table.pr-t td.k{color:#475569;width:62%;}
 table.pr-t td.v{text-align:right;font-weight:700;}
 table.pr-t tr.hl td{background:#fef2f2;color:#b91c1c;font-weight:800;}
+table.pr-t tr.hl2 td{background:#fff7ed;color:#c2410c;font-weight:800;}
 .pr-final{display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding:7px 12px;border-radius:7px;}
 .pr-final.otvsiz{background:#ecfdf5;border:1px solid #a7f3d0;}
 .pr-final.otvli{background:#eef2ff;border:1px solid #c7d2fe;}
@@ -850,6 +851,22 @@ function pdfYazdir(){
     it('Ardiye',v('calc-ardiye-tl')+' ₺')+it('TSE Müh.',v('calc-tse-muh-tl')+' ₺')+
     it('TSE Harcı',v('calc-tse-harci-manual')+' ₺');
 
+  // ÖTV'siz çekiş — gümrükte ödenecek (ekrandaki tablodan, sıfır satırlar atlanır)
+  function otsRow(rowId,label,oranId,tutarId){
+    var row=g(rowId); if(row&&row.style.display==='none')return '';
+    var o=oranId?(' ('+r(oranId)+')'):'';
+    return '<tr><td class="k">'+label+o+'</td><td class="v">'+r(tutarId)+'</td></tr>';
+  }
+  var otsTablo=
+    otsRow('ots-row-gv','Gümrük V.','ots-gv-o','ots-gv-t')+
+    otsRow('ots-row-igv','İlave GV','ots-igv-o','ots-igv-t')+
+    otsRow('ots-row-atr',"ATR'siz GV",'ots-atr-o','ots-atr-t')+
+    otsRow('ots-row-damga','Damga V.',null,'ots-damga-t')+
+    otsRow('ots-row-kkdf','KKDF','ots-kkdf-o','ots-kkdf-t')+
+    otsRow('ots-row-trt','TRT (%0.8)',null,'ots-trt-t')+
+    otsRow('ots-row-kdv','G.Giriş KDV','ots-kdv-o','ots-kdv-t')+
+    '<tr class="hl2"><td class="k">GÜMRÜK TOPLAMI (ÖTV\'siz)</td><td class="v">'+r('ots-toplam')+'</td></tr>';
+
   var tablo=tr('CIF Kıymet',r('res-cif'))+tr('GV Matrahı',r('res-gv-matrah'))+
     tr('Gümrük V. Tutarı',r('res-gv-tutar'))+tr('İlave GV',r('res-ilave-gv'))+
     tr("ATR'siz GV",r('res-atr-tutar'))+tr('Damga Vergisi',r('res-damga'))+
@@ -866,7 +883,8 @@ function pdfYazdir(){
         '<div class="pr-meta">'+tarih+'<br>'+saat+'</div></div>'+
       '<div class="pr-sec">Araç Bilgileri</div><div class="pr-grid">'+araclar+'</div>'+
       '<div class="pr-sec">Fatura &amp; Masraflar</div><div class="pr-grid">'+fatura+'</div>'+
-      '<div class="pr-sec">Vergi Dökümü</div><table class="pr-t"><tbody>'+tablo+'</tbody></table>'+
+      '<div class="pr-sec">Vergi Dökümü (ÖTV\'li)</div><table class="pr-t"><tbody>'+tablo+'</tbody></table>'+
+      '<div class="pr-sec">ÖTV\'siz Çekiş — Gümrükte Ödenecek</div><table class="pr-t"><tbody>'+otsTablo+'</tbody></table>'+
       '<div class="pr-sec">Sonuç</div>'+
       '<div class="pr-final otvsiz"><div class="lbl">ÖTV\'SİZ FİNAL</div>'+
         '<div class="amt"><div class="eur">'+r('res-otvsiz-eur')+'</div><div class="tl">'+r('res-otvsiz-maliyet')+'</div></div></div>'+
