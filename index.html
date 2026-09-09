@@ -125,42 +125,44 @@ details.brk[open] summary::before{content:"▾ ";}
 .otvsiz .amt .tl{font-size:17px;font-weight:800;color:var(--success);}
 .hint{font-size:10px;color:var(--text-muted);margin-top:6px;text-align:center;}
 
-/* ===== PDF / Yazdırma ===== */
+/* ===== PDF / Yazdırma (tek A4 sayfa) ===== */
 #print-area{display:none;}
 @media print{
-  @page{size:A4;margin:14mm;}
-  html,body{background:#fff !important;padding:0 !important;margin:0 !important;}
+  @page{size:A4 portrait;margin:9mm;}
+  html,body{background:#fff !important;padding:0 !important;margin:0 !important;height:auto !important;}
   body>header,body>.wrap,body>.finalbar{display:none !important;}
   #print-area{display:block !important;}
+  .pr{page-break-inside:avoid;break-inside:avoid;}
+  .pr-sec,.pr-grid,.pr-item,table.pr-t,table.pr-t tr,.pr-final{page-break-inside:avoid;break-inside:avoid;}
   *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
 }
-/* Print içeriği (ekranda gizli, çıktıda görünür) — kendi kapalı stili */
-.pr{font-family:Arial,Helvetica,sans-serif;color:#0f172a;font-size:12px;line-height:1.45;}
-.pr-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:10px;margin-bottom:14px;}
-.pr-brand{font-size:22px;font-weight:800;color:#3b82f6;letter-spacing:-.5px;}
+/* Print içeriği (ekranda gizli, çıktıda görünür) — kompakt, tek sayfa */
+.pr{font-family:Arial,Helvetica,sans-serif;color:#0f172a;font-size:10px;line-height:1.3;}
+.pr-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #3b82f6;padding-bottom:7px;margin-bottom:9px;}
+.pr-brand{font-size:18px;font-weight:800;color:#3b82f6;letter-spacing:-.5px;}
 .pr-brand span{color:#7c3aed;}
-.pr-sub{font-size:11px;color:#64748b;margin-top:2px;}
-.pr-meta{text-align:right;font-size:11px;color:#475569;}
-.pr-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#3b82f6;margin:14px 0 6px;padding-bottom:3px;border-bottom:1px solid #e2e8f0;}
-.pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 20px;}
-.pr-item{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted #e2e8f0;}
+.pr-sub{font-size:9.5px;color:#64748b;margin-top:2px;}
+.pr-meta{text-align:right;font-size:9.5px;color:#475569;}
+.pr-sec{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#3b82f6;margin:9px 0 3px;padding-bottom:2px;border-bottom:1px solid #e2e8f0;}
+.pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+.pr-item{display:flex;justify-content:space-between;padding:1.5px 0;border-bottom:1px dotted #e2e8f0;font-size:10px;}
 .pr-item b{font-weight:700;}
 .pr-item .k{color:#64748b;}
-table.pr-t{width:100%;border-collapse:collapse;margin-top:4px;}
-table.pr-t td{padding:5px 8px;border:1px solid #e2e8f0;font-size:12px;}
-table.pr-t td.k{color:#475569;width:60%;}
+table.pr-t{width:100%;border-collapse:collapse;margin-top:2px;}
+table.pr-t td{padding:2.5px 6px;border:1px solid #e2e8f0;font-size:10px;}
+table.pr-t td.k{color:#475569;width:62%;}
 table.pr-t td.v{text-align:right;font-weight:700;}
 table.pr-t tr.hl td{background:#fef2f2;color:#b91c1c;font-weight:800;}
-.pr-final{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:12px 14px;border-radius:8px;}
+.pr-final{display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding:7px 12px;border-radius:7px;}
 .pr-final.otvsiz{background:#ecfdf5;border:1px solid #a7f3d0;}
 .pr-final.otvli{background:#eef2ff;border:1px solid #c7d2fe;}
-.pr-final .lbl{font-size:12px;font-weight:800;}
+.pr-final .lbl{font-size:11px;font-weight:800;}
 .pr-final.otvsiz .lbl{color:#047857;} .pr-final.otvli .lbl{color:#4338ca;}
 .pr-final .amt{text-align:right;}
-.pr-final .amt .eur{font-size:11px;color:#64748b;}
-.pr-final .amt .tl{font-size:20px;font-weight:800;}
+.pr-final .amt .eur{font-size:9.5px;color:#64748b;}
+.pr-final .amt .tl{font-size:17px;font-weight:800;}
 .pr-final.otvsiz .amt .tl{color:#047857;} .pr-final.otvli .amt .tl{color:#4338ca;}
-.pr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center;}
+.pr-foot{margin-top:9px;padding-top:6px;border-top:1px solid #e2e8f0;font-size:8.5px;color:#94a3b8;text-align:center;}
 .btn-pdf{width:100%;height:48px;margin-top:12px;border:0;border-radius:var(--r-sm);
   background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -404,7 +406,7 @@ function formatCurrencyInput(i){var c=i.selectionStart,o=i.value;var v=o.replace
   var ip=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');var nv=p.length>1?ip+','+p[1]:ip;
   if(o!==nv){i.value=nv;var np=c+(nv.length-o.length);try{i.setSelectionRange(np,np);}catch(e){}}}
 
-var _otvManuel=false, _kkdfLocked=false, _teslim='CIF', _tip='AVRUPA', _sonMTV=0;
+var _otvManuel=false, _kkdfLocked=false, _teslim='CIF', _tip='AVRUPA', _sonMTV=0, _ready=false;
 
 /* ===== TCMB Kur çekme (portalla aynı kaynak) ===== */
 var TCMB_PROXY_URL="https://script.google.com/macros/s/AKfycby0n1LaXDaznO6uBdM9DX8T-z7WQH2fVs9LPNMmlbGFI05YCKVarl-zXgry09p_-Io8kQ/exec";
@@ -736,6 +738,7 @@ var STORE_IDS=['calc-currency','calc-kur-eur','calc-kur-usd','calc-yakit','calc-
   'calc-gumruk','calc-nakliye','calc-almanya','calc-ardiye-tl','calc-tse-muh-tl','calc-tse-harci-manual',
   'mtv-tur','mtv-tescil','mtv-yas','mtv-hacim','mtv-deger'];
 function saveState(){
+  if(!_ready)return; // init bitmeden yazma — yoksa kayıtlı verinin üzerine varsayılanlar yazılır
   try{
     var s={};STORE_IDS.forEach(function(id){var e=document.getElementById(id);if(e)s[id]=e.value;});
     s._teslim=_teslim;s._tip=_tip;s._otvManuel=_otvManuel;
@@ -845,6 +848,7 @@ document.addEventListener('DOMContentLoaded',function(){
   initInputs();
   loadState();
   updateGTIP();
+  _ready=true;      // artık kayıt açık: bundan sonraki değişiklikler saklanır
   calc();
   // Açılışta TCMB kurunu arka planda bir kez çek (çevrimdışıysa eldeki değerler kalır)
   if(navigator.onLine!==false){ setTimeout(function(){ fetchKur(true); }, 300); }

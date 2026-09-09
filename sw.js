@@ -1,5 +1,5 @@
 // Vergi Hesap Service Worker
-const CACHE_NAME = 'vergihesap-v1';
+const CACHE_NAME = 'vergihesap-v2';
 const ASSETS = [
   './',
   './index.html',
